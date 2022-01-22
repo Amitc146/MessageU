@@ -15,7 +15,7 @@ class User
 	CryptoPP::byte* m_SymmetricKey;
 
 public:
-	User(std::string clientId, std::string username);
+	User(const std::string& clientId, const std::string& username);
 	~User();
 
 	std::string GetClientId();
@@ -23,8 +23,8 @@ public:
 	CryptoPP::RSA::PublicKey* GetPublicKey();
 	CryptoPP::byte* GetSymmetricKey();
 
-	void SetClientId(std::string clientId);
-	void SetUsername(std::string username);
+	void SetClientId(const std::string& clientId);
+	void SetUsername(const std::string& username);
 	void SetPublicKey(CryptoPP::RSA::PublicKey publicKey);
 	void SetSymmetricKey(CryptoPP::byte* symmetricKey);
 

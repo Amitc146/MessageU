@@ -41,19 +41,19 @@ private:
 
 public:
 	Client();
-	Client(std::string username, std::string id, std::string privKeyStr);
+	Client(const std::string& username, const std::string& id, const std::string& privKeyStr);
 	~Client();
 
 	bool RegisterRequest();
 	bool ClientListRequest();
-	bool PublicKeyRequest(std::string targetUsername);
-	bool TextMessageRequest(std::string targetUsername, std::string messageContent);
-	bool GetSymmetricKeyRequest(std::string targetUsername);
-	bool SendSymmetricKeyRequest(std::string targetUsername);
+	bool PublicKeyRequest(const std::string& targetUsername);
+	bool TextMessageRequest(const std::string& targetUsername, const std::string& messageContent);
+	bool GetSymmetricKeyRequest(const std::string& targetUsername);
+	bool SendSymmetricKeyRequest(const std::string& targetUsername);
 	bool PullRequest();
 
 private:
-	void SendRequest(request::Header* header, request::Payload* payload);
+	void SendRequest(RequestHeader* header, RequestPayload* payload);
 	bool GetResponse();
 	void RegisterResponse();
 	void ClientListResponse(uint32_t payloadSize);
@@ -61,23 +61,23 @@ private:
 	void MessageResponse();
 	void PullResponse(uint32_t payloadSize);
 
-	bool SendMessageRequest(std::string targetId, uint8_t messageType, std::string content);
+	bool SendMessageRequest(const std::string& targetId, uint8_t messageType, const std::string& content);
 	CryptoPP::RSA::PrivateKey GeneratePrivateKey();
 	CryptoPP::RSA::PublicKey GeneratePublicKey();
-	void CreateSymmetricKeyForClient(std::string clientId);
+	void CreateSymmetricKeyForClient(const std::string& clientId);
 	void GenerateSymmetricKey(char* buff, size_t size);
-	std::string EncryptWithPublicKey(std::string message, CryptoPP::RSA::PublicKey pubKey);
-	std::string EncryptWithSymmetricKey(std::string message, CryptoPP::byte* symmKey);
-	std::string DecryptWithPrivateKey(std::string message);
-	std::string DecryptWithSymmetricKey(std::string message, CryptoPP::byte* symmKey);
-	std::string GetIdByUsername(std::string username);
+	std::string EncryptWithPublicKey(const std::string& message, CryptoPP::RSA::PublicKey pubKey);
+	std::string EncryptWithSymmetricKey(const std::string& message, CryptoPP::byte* symmKey);
+	std::string DecryptWithPrivateKey(const std::string& message);
+	std::string DecryptWithSymmetricKey(const std::string& message, CryptoPP::byte* symmKey);
+	std::string GetIdByUsername(const std::string& username);
 
 public:
 	void PrintUsers();
 	void PrintMessages();
 	void SetSocket(tcp::socket* socket);
-	void SetUsername(std::string username);
-	void SetId(std::string id);
+	void SetUsername(const std::string& username);
+	void SetId(const std::string& id);
 	std::string GetUsername();
 	std::string GetId();
 	CryptoPP::RSA::PrivateKey GetPrivateKey();

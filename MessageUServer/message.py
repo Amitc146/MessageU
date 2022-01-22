@@ -15,28 +15,3 @@ class Message:
                f'Type: {self.message_type}, Content: {self.content}}}'
 
 
-class MessageDAO:
-    """
-    An interface for database operations on clients.
-    """
-
-    def __init__(self):
-        pass
-
-    def insert(self, message):
-        pass
-
-    def delete_by_id(self, mid):
-        pass
-
-    def delete_all(self):
-        pass
-
-    def find_by_id(self, mid):
-        pass
-
-    def find_by_dst_client(self, client):
-        pass
-
-    def find_all(self):
-        pass

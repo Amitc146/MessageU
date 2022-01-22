@@ -7,7 +7,7 @@
 
 Client::Client() : m_Socket(nullptr) {}
 
-Client::Client(std::string username, std::string id, std::string privKeyStr) : m_Username(username), m_Id(id), m_Socket(nullptr)
+Client::Client(const std::string& username, const std::string& id, const std::string& privKeyStr) : m_Username(username), m_Id(id), m_Socket(nullptr)
 {
 	// Loading private key for future use
 	CryptoPP::ByteQueue bytes;
@@ -28,10 +28,10 @@ bool Client::RegisterRequest()
 {
 	m_PrivateKey = GeneratePrivateKey();
 
-	std::shared_ptr<request::Payload> p(
-		new request::RegisterPayload(*(m_Username.c_str()), GeneratePublicKey()));
-	std::shared_ptr<request::Header> h(
-		new request::Header(NULL, register_request_code, p->GetPayloadSize()));
+	std::shared_ptr<RequestPayload> p(
+		new RequestRegisterPayload(*(m_Username.c_str()), GeneratePublicKey()));
+	std::shared_ptr<RequestHeader> h(
+		new RequestHeader(*(m_Username.c_str()), register_request_code, p->GetPayloadSize()));
 
 	SendRequest(h.get(), p.get());
 	return GetResponse();
@@ -83,15 +83,15 @@ bool Client::ClientListRequest()
 {
 	std::vector<char> clientId = hex_to_bytes(m_Id);
 
-	std::shared_ptr<request::Header> h(
-		new request::Header(*clientId.data(), client_list_request_code, 0));
+	std::shared_ptr<RequestHeader> h(
+		new RequestHeader(*clientId.data(), client_list_request_code, 0));
 
 	SendRequest(h.get(), nullptr);
 	return GetResponse();
 }
 
 
-bool Client::PublicKeyRequest(std::string targetUsername)
+bool Client::PublicKeyRequest(const std::string& targetUsername)
 {
 	std::string id = GetIdByUsername(targetUsername);
 
@@ -101,17 +101,17 @@ bool Client::PublicKeyRequest(std::string targetUsername)
 	std::vector<char> clientId = hex_to_bytes(m_Id);
 	std::vector<char> targetId = hex_to_bytes(id);
 
-	std::shared_ptr<request::Payload> p(
-		new request::PublicKeyPayload(*targetId.data()));
-	std::shared_ptr<request::Header> h(
-		new request::Header(*clientId.data(), public_key_request_code, p->GetPayloadSize()));
+	std::shared_ptr<RequestPayload> p(
+		new RequestPublicKeyPayload(*targetId.data()));
+	std::shared_ptr<RequestHeader> h(
+		new RequestHeader(*clientId.data(), public_key_request_code, p->GetPayloadSize()));
 
 	SendRequest(h.get(), p.get());
 	return GetResponse();
 }
 
 
-bool Client::TextMessageRequest(std::string targetUsername, std::string messageContent)
+bool Client::TextMessageRequest(const std::string& targetUsername, const std::string& messageContent)
 {
 	std::string targetId = GetIdByUsername(targetUsername);
 
@@ -132,7 +132,7 @@ bool Client::TextMessageRequest(std::string targetUsername, std::string messageC
 }
 
 
-bool Client::GetSymmetricKeyRequest(std::string targetUsername)
+bool Client::GetSymmetricKeyRequest(const std::string& targetUsername)
 {
 	std::string targetId = GetIdByUsername(targetUsername);
 
@@ -152,7 +152,7 @@ bool Client::GetSymmetricKeyRequest(std::string targetUsername)
 }
 
 
-bool Client::SendSymmetricKeyRequest(std::string targetUsername)
+bool Client::SendSymmetricKeyRequest(const std::string& targetUsername)
 {
 	std::string targetId = GetIdByUsername(targetUsername);
 
@@ -180,22 +180,22 @@ bool Client::SendSymmetricKeyRequest(std::string targetUsername)
 }
 
 
-bool Client::SendMessageRequest(std::string targetId, uint8_t messageType, std::string content)
+bool Client::SendMessageRequest(const std::string& targetId, uint8_t messageType, const std::string& content)
 {
 	std::vector<char> b_ClientId = hex_to_bytes(m_Id);
 	std::vector<char> b_TargetId = hex_to_bytes(targetId);
 
-	std::shared_ptr<request::Payload> p(
-		new request::MessagePayload(*b_TargetId.data(), messageType, content));
-	std::shared_ptr<request::Header> h(
-		new request::Header(*b_ClientId.data(), message_request_code, p->GetPayloadSize()));
+	std::shared_ptr<RequestPayload> p(
+		new RequestMessagePayload(*b_TargetId.data(), messageType, content));
+	std::shared_ptr<RequestHeader> h(
+		new RequestHeader(*b_ClientId.data(), message_request_code, p->GetPayloadSize()));
 
 	SendRequest(h.get(), p.get());
 	return GetResponse();
 }
 
 
-void Client::CreateSymmetricKeyForClient(std::string clientId)
+void Client::CreateSymmetricKeyForClient(const std::string& clientId)
 {
 	CryptoPP::byte symmKey[CryptoPP::AES::DEFAULT_KEYLENGTH];
 	memset(symmKey, 0x00, CryptoPP::AES::DEFAULT_KEYLENGTH);
@@ -209,7 +209,7 @@ void Client::GenerateSymmetricKey(char* buff, size_t size)
 		_rdrand32_step(reinterpret_cast<unsigned int*>(&buff[i]));
 }
 
-std::string Client::EncryptWithPublicKey(std::string message, CryptoPP::RSA::PublicKey pubKey)
+std::string Client::EncryptWithPublicKey(const std::string& message, CryptoPP::RSA::PublicKey pubKey)
 {
 	CryptoPP::AutoSeededRandomPool rng;
 
@@ -220,7 +220,7 @@ std::string Client::EncryptWithPublicKey(std::string message, CryptoPP::RSA::Pub
 	return encrypted;
 }
 
-std::string Client::EncryptWithSymmetricKey(std::string message, CryptoPP::byte* symmKey)
+std::string Client::EncryptWithSymmetricKey(const std::string& message, CryptoPP::byte* symmKey)
 {
 	CryptoPP::byte iv[CryptoPP::AES::BLOCKSIZE];
 	memset(iv, 0x00, CryptoPP::AES::DEFAULT_KEYLENGTH);
@@ -237,7 +237,7 @@ std::string Client::EncryptWithSymmetricKey(std::string message, CryptoPP::byte*
 	return encMessage;
 }
 
-std::string Client::DecryptWithPrivateKey(std::string message)
+std::string Client::DecryptWithPrivateKey(const std::string& message)
 {
 	CryptoPP::AutoSeededRandomPool rng;
 
@@ -248,7 +248,7 @@ std::string Client::DecryptWithPrivateKey(std::string message)
 	return decrypted;
 }
 
-std::string Client::DecryptWithSymmetricKey(std::string message, CryptoPP::byte* symmKey)
+std::string Client::DecryptWithSymmetricKey(const std::string& message, CryptoPP::byte* symmKey)
 {
 	CryptoPP::byte iv[CryptoPP::AES::BLOCKSIZE];
 	memset(iv, 0x00, CryptoPP::AES::DEFAULT_KEYLENGTH);
@@ -270,21 +270,21 @@ bool Client::PullRequest()
 {
 	std::vector<char> clientId = hex_to_bytes(m_Id);
 
-	std::shared_ptr<request::Header> h(new request::Header(*clientId.data(), pull_request_code, 0));
+	std::shared_ptr<RequestHeader> h(new RequestHeader(*clientId.data(), pull_request_code, 0));
 
 	SendRequest(h.get(), nullptr);
 	return GetResponse();
 }
 
 
-void Client::SendRequest(request::Header* header, request::Payload* payload)
+void Client::SendRequest(RequestHeader* header, RequestPayload* payload)
 {
-	int requestSize = request::header_size + (payload ? payload->GetPayloadSize() : 0);
+	int requestSize = header_size + (payload ? payload->GetPayloadSize() : 0);
 	std::shared_ptr<char> buffer(new char[requestSize]);
 
 	header->Serialize(buffer.get());
 	if (payload)
-		payload->Serialize(buffer.get() + request::header_size);
+		payload->Serialize(buffer.get() + header_size);
 
 	boost::asio::write(*m_Socket, boost::asio::buffer(buffer.get(), requestSize));
 }
@@ -322,7 +322,7 @@ bool Client::GetResponse()
 
 void Client::RegisterResponse()
 {
-	response::RegisterPayload payload = response::RegisterPayload(m_Socket);
+	ResponseRegisterPayload payload = ResponseRegisterPayload(m_Socket);
 
 	std::cout << "Registered successfully." << std::endl;
 	std::cout << "Username: " << m_Username << std::endl;
@@ -338,7 +338,7 @@ void Client::ClientListResponse(uint32_t payloadSize)
 	// Saving the received users in a <username, User> map
 	for (int i = 0; i < numberOfClients; i++)
 	{
-		response::ClientListPayload payload = response::ClientListPayload(m_Socket);
+		ResponseClientListPayload payload = ResponseClientListPayload(m_Socket);
 		std::string id = get_uuid_string_from_bytes(payload.m_ClientId);	// UUID conversion
 		if (!m_Users[id])
 			m_Users[id] = new User(id, payload.m_Username);
@@ -348,7 +348,7 @@ void Client::ClientListResponse(uint32_t payloadSize)
 
 void Client::PublicKeyResponse()
 {
-	response::PublicKeyPayload payload = response::PublicKeyPayload(m_Socket);
+	ResponsePublicKeyPayload payload = ResponsePublicKeyPayload(m_Socket);
 
 	std::string id = get_uuid_string_from_bytes(payload.m_ClientId);
 	User* u = m_Users.at(id);
@@ -379,7 +379,7 @@ void Client::PullResponse(uint32_t payloadSize)
 {
 	while (payloadSize > 0)
 	{
-		response::PullPayload payload = response::PullPayload(m_Socket);
+		ResponsePullPayload payload = ResponsePullPayload(m_Socket);
 		User* user = m_Users[get_uuid_string_from_bytes(payload.m_ClientId)];
 		std::pair<std::string, std::string> message;
 
@@ -466,7 +466,7 @@ void Client::PrintUsers()
 }
 
 
-std::string Client::GetIdByUsername(std::string username)
+std::string Client::GetIdByUsername(const std::string& username)
 {
 	for (auto const& u : m_Users)
 	{
@@ -485,13 +485,13 @@ void Client::SetSocket(tcp::socket* socket)
 }
 
 
-void Client::SetUsername(std::string username)
+void Client::SetUsername(const std::string& username)
 {
 	m_Username = username;
 }
 
 
-void Client::SetId(std::string id)
+void Client::SetId(const std::string& id)
 {
 	m_Id = id;
 }

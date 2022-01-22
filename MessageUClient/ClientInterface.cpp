@@ -11,8 +11,11 @@ ClientInterface::ClientInterface()
 
 ClientInterface::~ClientInterface()
 {
-	m_Socket->close();
-	delete m_Socket;
+	if (m_Socket)
+	{
+		m_Socket->close();
+		delete m_Socket;
+	}
 	delete m_Client;
 }
 
@@ -143,13 +146,11 @@ void ClientInterface::SendRegisterRequest()
 	{
 		m_Client->SetUsername(GetUsernameInput());
 
-		PrintRequestBlock("register");
 		if (m_Client->RegisterRequest())
 		{
 			SaveUserDetails();
 			m_Registered = true;
 		}
-		EndBlock();
 
 		// Refreshing client list for future requests
 		m_Client->ClientListRequest();
@@ -161,28 +162,22 @@ void ClientInterface::SendRegisterRequest()
 
 void ClientInterface::SendClientListRequest()
 {
-	PrintRequestBlock("client list");
 	if (m_Client->ClientListRequest())
 		m_Client->PrintUsers();
-	EndBlock();
 }
 
 
 void ClientInterface::SendPublicKeyRequest()
 {
 	std::string targetUsername = GetUsernameInput();
-	PrintRequestBlock("public key");
 	m_Client->PublicKeyRequest(targetUsername);
-	EndBlock();
 }
 
 
 void ClientInterface::SendPullRequest()
 {
-	PrintRequestBlock("pull");
 	m_Client->PullRequest();
 	m_Client->PrintMessages();
-	EndBlock();
 }
 
 
@@ -190,33 +185,27 @@ void ClientInterface::SendMessageRequest()
 {
 	std::string targetUsername = GetUsernameInput();
 	std::string message = GetMessageInput();
-	PrintRequestBlock("text message");
 	m_Client->TextMessageRequest(targetUsername, message);
-	EndBlock();
 }
 
 
 void ClientInterface::SendGetSymmetricKeyRequest()
 {
 	std::string targetUsername = GetUsernameInput();
-	PrintRequestBlock("get symmetric key");
 	m_Client->GetSymmetricKeyRequest(targetUsername);
-	EndBlock();
 }
 
 
 void ClientInterface::SendSendSymmetricKeyRequest()
 {
 	std::string targetUsername = GetUsernameInput();
-	PrintRequestBlock("send symmetric key");
 	m_Client->SendSymmetricKeyRequest(targetUsername);
-	EndBlock();
 }
 
 
 void ClientInterface::PrintUserInterface()
 {
-	std::cout << "MessageU client at your service.\n" << std::endl;
+	std::cout << "\nMessageU client at your service.\n" << std::endl;
 	std::cout << "1) Register" << std::endl;
 	std::cout << "2) Request for clients list" << std::endl;
 	std::cout << "3) Request for public key" << std::endl;
@@ -323,17 +312,4 @@ void ClientInterface::SaveUserDetails()
 	file << privKeyStr << "\n";
 
 	file.close();
-}
-
-
-void ClientInterface::PrintRequestBlock(std::string requestName)
-{
-	std::cout << "\n---------------------------------------------------------------------------" << std::endl;
-	std::cout << "Sending " << requestName << " request...\n" << std::endl;
-}
-
-
-void ClientInterface::EndBlock()
-{
-	std::cout << "---------------------------------------------------------------------------\n" << std::endl;
 }

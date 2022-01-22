@@ -23,38 +23,3 @@ class Client:
     def create_uuid(self):
         self.cid = uuid.uuid4().bytes
 
-
-class ClientDAO:
-    """
-    An interface for database operations on clients.
-    """
-
-    def __init__(self):
-        pass
-
-    def insert(self, client):
-        pass
-
-    def delete_by_id(self, cid):
-        pass
-
-    def delete_by_name(self, username):
-        pass
-
-    def update_name(self, client, new_name):
-        pass
-
-    def update_public_key(self, client, new_key):
-        pass
-
-    def update_last_seen(self, client):
-        pass
-
-    def find_by_name(self, username):
-        pass
-
-    def find_by_id(self, cid):
-        pass
-
-    def find_all(self):
-        pass

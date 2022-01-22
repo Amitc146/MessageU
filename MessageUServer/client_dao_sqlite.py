@@ -2,13 +2,12 @@ import sqlite3
 from client import *
 
 
-class ClientDAOSQLite(ClientDAO):
+class ClientDAOSQLite:
     """
-    Implementation for ClientDAO using SQLite3.
+    Client DAO using SQLite3.
     """
 
     def __init__(self, db_path):
-        super().__init__()
         self.db_path = db_path
 
     def insert(self, client):

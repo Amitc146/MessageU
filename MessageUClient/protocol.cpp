@@ -2,14 +2,19 @@
 
 using namespace protocol;
 
-request::Header::Header(const char& clientId, uint8_t code, uint32_t payloadSize) :
+RequestHeader::RequestHeader(const char& clientId, uint8_t code, uint32_t payloadSize) :
 	m_Version(client_version), m_Code(code), m_PayloadSize(payloadSize)
 {
 	if (clientId)
 		memcpy(m_ClientId, &clientId, id_length);
+	else
+	{
+		std::cout << "Failed to create header. Client ID is missing." << std::endl;
+		exit(1);
+	}
 }
 
-void request::Header::Serialize(char* buff)
+void RequestHeader::Serialize(char* buff)
 {
 	memcpy(buff, &m_ClientId, id_length);
 	char* temp = buff + id_length;
@@ -20,7 +25,7 @@ void request::Header::Serialize(char* buff)
 	memcpy(temp, &m_PayloadSize, sizeof(m_PayloadSize));
 }
 
-request::RegisterPayload::RegisterPayload(const char& name, CryptoPP::RSA::PublicKey pubKey)
+RequestRegisterPayload::RequestRegisterPayload(const char& name, CryptoPP::RSA::PublicKey pubKey)
 {
 	CryptoPP::byte buff[public_key_length];
 	CryptoPP::ArraySink as(buff, public_key_length);
@@ -32,35 +37,35 @@ request::RegisterPayload::RegisterPayload(const char& name, CryptoPP::RSA::Publi
 	strcpy(m_Name, &name);
 }
 
-void request::RegisterPayload::Serialize(char* buff)
+void RequestRegisterPayload::Serialize(char* buff)
 {
 	memcpy(buff, m_Name, username_length);
 	char* temp = buff + username_length;
 	memcpy(temp, m_PublicKey, public_key_length);
 }
 
-uint32_t request::RegisterPayload::GetPayloadSize()
+uint32_t RequestRegisterPayload::GetPayloadSize()
 {
 	return username_length + public_key_length;
 }
 
-request::PublicKeyPayload::PublicKeyPayload(const char& targetId)
+RequestPublicKeyPayload::RequestPublicKeyPayload(const char& targetId)
 {
 	memcpy(m_ClientId, &targetId, id_length);
 }
 
-void request::PublicKeyPayload::Serialize(char* buff)
+void RequestPublicKeyPayload::Serialize(char* buff)
 {
 	memcpy(buff, m_ClientId, id_length);
 }
 
-uint32_t request::PublicKeyPayload::GetPayloadSize()
+uint32_t RequestPublicKeyPayload::GetPayloadSize()
 {
 	return id_length;
 }
 
 
-request::MessagePayload::MessagePayload(const char& targetId, uint8_t messageType, std::string messageContent) : m_MessageType(messageType), m_ContentSize(messageContent.length())
+RequestMessagePayload::RequestMessagePayload(const char& targetId, uint8_t messageType, std::string messageContent) : m_MessageType(messageType), m_ContentSize(messageContent.length())
 {
 	memcpy(m_ClientId, &targetId, id_length);
 
@@ -72,12 +77,12 @@ request::MessagePayload::MessagePayload(const char& targetId, uint8_t messageTyp
 	memcpy(m_MessageContent, messageContent.c_str(), m_ContentSize);
 }
 
-request::MessagePayload::~MessagePayload()
+RequestMessagePayload::~RequestMessagePayload()
 {
 	delete m_MessageContent;
 }
 
-void request::MessagePayload::Serialize(char* buff)
+void RequestMessagePayload::Serialize(char* buff)
 {
 	memcpy(buff, m_ClientId, id_length);
 	char* temp = buff + id_length;
@@ -88,30 +93,30 @@ void request::MessagePayload::Serialize(char* buff)
 	memcpy(temp, m_MessageContent, m_ContentSize);
 }
 
-uint32_t request::MessagePayload::GetPayloadSize()
+uint32_t RequestMessagePayload::GetPayloadSize()
 {
 	return id_length + sizeof(m_MessageType) + sizeof(m_ContentSize) + m_ContentSize;
 }
 
-response::RegisterPayload::RegisterPayload(tcp::socket* s)
+ResponseRegisterPayload::ResponseRegisterPayload(tcp::socket* s)
 {
 	boost::asio::read(*s, boost::asio::buffer(&m_ClientId, id_length));
 }
 
-response::ClientListPayload::ClientListPayload(tcp::socket* s)
+ResponseClientListPayload::ResponseClientListPayload(tcp::socket* s)
 {
 	m_Username[username_length] = 0;
 	boost::asio::read(*s, boost::asio::buffer(&m_ClientId, id_length));
 	boost::asio::read(*s, boost::asio::buffer(&m_Username, username_length));
 }
 
-response::PublicKeyPayload::PublicKeyPayload(tcp::socket* s)
+ResponsePublicKeyPayload::ResponsePublicKeyPayload(tcp::socket* s)
 {
 	boost::asio::read(*s, boost::asio::buffer(&m_ClientId, id_length));
 	boost::asio::read(*s, boost::asio::buffer(&m_PublicKey, public_key_length));
 }
 
-response::PullPayload::PullPayload(tcp::socket* s)
+ResponsePullPayload::ResponsePullPayload(tcp::socket* s)
 {
 	boost::asio::read(*s, boost::asio::buffer(&m_ClientId, id_length));
 	boost::asio::read(*s, boost::asio::buffer(&m_MessageId, sizeof(m_MessageId)));
@@ -122,12 +127,12 @@ response::PullPayload::PullPayload(tcp::socket* s)
 	boost::asio::read(*s, boost::asio::buffer(m_Content, m_MessageSize));
 }
 
-response::PullPayload::~PullPayload()
+ResponsePullPayload::~ResponsePullPayload()
 {
 	delete m_Content;
 }
 
-std::string response::PullPayload::GetContentAsString()
+std::string ResponsePullPayload::GetContentAsString()
 {
 	return std::string(reinterpret_cast<char*>(m_Content), m_MessageSize);
 }

@@ -2,9 +2,9 @@ import sqlite3
 from message import *
 
 
-class MessageDAOSQLite(MessageDAO):
+class MessageDAOSQLite:
     """
-    Implementation for MessageDAO using SQLite3.
+    Message DAO using SQLite3.
     """
 
     def __init__(self, db_path, client_service):

@@ -1,7 +1,7 @@
 #include <iostream>
 #include "User.h"
 
-User::User(std::string clientId, std::string username) : m_PublicKey(nullptr), m_SymmetricKey(nullptr)
+User::User(const std::string& clientId, const std::string& username) : m_PublicKey(nullptr), m_SymmetricKey(nullptr)
 {
 	m_ClientId = clientId;
 	m_Username = username;
@@ -35,12 +35,12 @@ CryptoPP::byte* User::GetSymmetricKey()
 	return m_SymmetricKey;
 }
 
-void User::SetClientId(std::string clientId)
+void User::SetClientId(const std::string& clientId)
 {
 	m_ClientId = clientId;
 }
 
-void User::SetUsername(std::string username)
+void User::SetUsername(const std::string& username)
 {
 	m_Username = username;
 }

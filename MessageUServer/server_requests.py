@@ -1,8 +1,6 @@
 from client import Client
-from client_service import ClientService
 from client_dao_sqlite import ClientDAOSQLite
 from message import Message
-from message_service import MessageService
 from message_dao_sqlite import MessageDAOSQLite
 from uuid import *
 from server_responses import *
@@ -11,8 +9,8 @@ PUBLIC_KEY_LENGTH = 160
 USERNAME_LENGTH = 255
 GET_SYMMETRIC_KEY = 1
 
-client_service = ClientService(ClientDAOSQLite('server.db'))
-message_service = MessageService(MessageDAOSQLite('server.db', client_service))
+client_service = ClientDAOSQLite('server.db')
+message_service = MessageDAOSQLite('server.db', client_service)
 
 
 def fetch_header(conn):
